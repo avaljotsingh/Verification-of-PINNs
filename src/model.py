@@ -16,6 +16,7 @@ class MyModel(torch.nn.Module):
             else:
                 # Subsequent hidden layers connected to the previous hidden layer
                 layers.append(torch.nn.Linear(widths[i-1], widths[i]))
+
             activation = torch.nn.ReLU()
             if activations[i] == 'tanh':
                 activation = torch.nn.Tanh()
@@ -23,6 +24,7 @@ class MyModel(torch.nn.Module):
                 activation = torch.nn.ELU()
             elif activations[i] == 'sigmoid':
                 activation = torch.nn.Sigmoid()
+
             layers.append(activation)
 
         # Output layer

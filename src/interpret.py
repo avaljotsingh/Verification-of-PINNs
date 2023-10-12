@@ -21,20 +21,17 @@ class Abs_interpreter():
                 b = params[1]
                 l, u = self.domain.fc(l, u, W, b)
                 L, U = self.domain.fc_deriv(L, U, W, b)
-            elif type(layer) == torch.nn.modules.activations.ReLU:
-                L, U = self.domain.relu_deriv(L, U, W, b) 
-                l, u = self.domain.relu(l, u, W, b)
-        return l, u, L, U
+            elif type(layer) == torch.nn.modules.activation.ReLU:
+                L, U = self.domain.relu_deriv(l, u, L, U) 
+                l, u = self.domain.relu(l, u)
+
+        return (l, u), (L, U)
 
 if __name__ == '__main__':
     file_name = sys.argv[1]
-    print(file_name)
-    input_size = 2
-    widths = [8, 16, 8]
-    activations = ['relu', 'relu', 'relu']
-    output_size = 1
-    model = MyModel(input_size, widths, activations, output_size)
-    # model.load_state_dict(torch.load('model_file.pkl'))
-    # domain = Interval()
-    # abs_interpreter = Abs_interpreter(model, domain)
-    # print(abs_interpreter.forward_pass(0, 1))
+    model = torch.load(file_name)
+    domain = Interval()
+    abs_interpreter = Abs_interpreter(model, domain)
+    val_bounds, deriv_bounds = abs_interpreter.forward_pass(0, 1)
+    print("Val bounds:", val_bounds)
+    print("Deriv. bounds:", deriv_bounds)

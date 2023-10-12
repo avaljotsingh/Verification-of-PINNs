@@ -2,20 +2,20 @@ import numpy as np
 import torch
 
 class Domain():
-    def fc(l, u, W, b):
+    def fc(self, l, u, W, b):
         pass 
 
-    def relu(l, u):
+    def relu(self, l, u):
         pass 
 
-    def fc_deriv(L, U, W):
+    def fc_deriv(self, L, U, W, b):
         pass 
 
-    def relu_deriv(l, u, L, U):
+    def relu_deriv(self, l, u, L, U):
         pass 
 
 class Interval(Domain):
-    def fc(l, u, W, b):
+    def fc(self, l, u, W, b):
         S = (W >= 0) * 1
         W1 = S * W    
         W2 = (1 - S) * W
@@ -27,7 +27,7 @@ class Interval(Domain):
 
         return l_new, u_new
 
-    def relu(l, u):
+    def relu(self, l, u):
         l_new = torch.zeros(l.shape)
         u_new = u.clone()
 
@@ -39,7 +39,7 @@ class Interval(Domain):
 
         return l_new, u_new
     
-    def fc_deriv(L, U, W):
+    def fc_deriv(self, L, U, W, b):
         S = (W >= 0) * 1
         W1 = S * W    
         W2 = (1 - S) * W
@@ -49,7 +49,7 @@ class Interval(Domain):
 
         return L_new, U_new
     
-    def relu_deriv(l, u, L, U):
+    def relu_deriv(self, l, u, L, U):
         L_relu = torch.zeros((l.shape))
         U_relu = torch.ones((l.shape))
 
