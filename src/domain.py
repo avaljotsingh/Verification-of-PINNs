@@ -59,6 +59,12 @@ class Interval(Domain):
         indices = (u<0)
         U_relu[indices] = 0
 
-        L_new = L * L_relu.view(-1,1)
-        U_new = U * U_relu.view(-1,1)
+        L_new_1 = L * L_relu.view(-1,1)
+        L_new_2 = L * U_relu.view(-1,1)
+        L_new = torch.min(L_new_1, L_new_2)
+
+        U_new_1 = U * L_relu.view(-1,1)
+        U_new_2 = U * U_relu.view(-1,1)
+        U_new = torch.max(U_new_1, U_new_2)
+
         return L_new, U_new
