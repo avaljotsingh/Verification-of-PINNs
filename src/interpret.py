@@ -24,6 +24,8 @@ class Abs_interpreter():
             elif type(layer) == torch.nn.modules.activation.ReLU:
                 L, U = self.domain.relu_deriv(l, u, L, U) 
                 l, u = self.domain.relu(l, u)
+            else:
+                raise NotImplementedError("Forward logic not implemented for layer type: ", type(layer))
 
         return (l, u), (L, U)
 
