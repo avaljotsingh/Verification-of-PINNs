@@ -73,15 +73,18 @@ class Interval(Domain):
     
     def relu_deriv(self, l, u, L, U):
         # L_relu and U_relu are derivatives of just the ReLU layer.
+
+        # Note: For the case when either 0 is inside l and u or l (or u) is 0,
+        # the derivative range is returned as [0,1] for soundness as deriv. is not
+        # defined at 0.
+        
         # The lower bounds are zero by default but 1 for the cases where the lower bound of input
         # is more than equal to 0.
-        L_relu = (l >= 0) * 1
+        L_relu = (l > 0) * 1
 
         # The upper bounds are 1 by default but 0 for the cases where the upper bound of input
         # is less than equal to 0.
-        U_relu = 1 - ((u <= 0) * 1)
-
-        ## TODO: Check if we need to the handle the l (or u) equal to 0 case differently as ReLU is not differentiable there.
+        U_relu = 1 - ((u < 0) * 1)
 
         L_new_1 = L * L_relu.view(-1,1)
         L_new_2 = L * U_relu.view(-1,1)
