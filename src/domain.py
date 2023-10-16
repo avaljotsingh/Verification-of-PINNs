@@ -28,15 +28,31 @@ class Interval(Domain):
         return l_new, u_new
 
     def relu(self, l, u):
-        l_new = torch.zeros(l.shape)
-        u_new = u.clone()
+        # l_new = torch.zeros(l.shape)
+        # u_new = u.clone()
 
-        indices = (l>0)
-        l_new[indices] = l[indices]
+        # indices = (l>0)
+        # l_new[indices] = l[indices]
 
-        indices = (u<0)
-        u_new[indices] = 0
+        # indices = (u<0)
+        # u_new[indices] = 0
 
+        l_new = torch.relu(l)
+        u_new = torch.relu(u)
+        return l_new, u_new
+    
+    def tanh(self, l, u):
+        # l_new = torch.zeros(l.shape)
+        # u_new = u.clone()
+
+        # indices = (l>0)
+        # l_new[indices] = l[indices]
+
+        # indices = (u<0)
+        # u_new[indices] = 0
+
+        l_new = torch.tanh(l)
+        u_new = torch.tanh(u)
         return l_new, u_new
     
     def fc_deriv(self, L, U, W, b):
@@ -50,14 +66,17 @@ class Interval(Domain):
         return L_new, U_new
     
     def relu_deriv(self, l, u, L, U):
-        L_relu = torch.zeros((l.shape))
-        U_relu = torch.ones((l.shape))
+        L_relu = (l <= 0) * 1
+        U_relu = (u <= 0) * 1
 
-        indices = (l>0)
-        L_relu[indices] = 1
+        # L_relu = torch.zeros((l.shape))
+        # U_relu = torch.ones((l.shape))
 
-        indices = (u<0)
-        U_relu[indices] = 0
+        # indices = (l>0)
+        # L_relu[indices] = 1
+
+        # indices = (u<0)
+        # U_relu[indices] = 0
 
         L_new_1 = L * L_relu.view(-1,1)
         L_new_2 = L * U_relu.view(-1,1)
@@ -65,6 +84,26 @@ class Interval(Domain):
 
         U_new_1 = U * L_relu.view(-1,1)
         U_new_2 = U * U_relu.view(-1,1)
+        U_new = torch.max(U_new_1, U_new_2)
+
+        return L_new, U_new
+    
+    def tanh_deriv(self, l, u, L, U):
+        deriv_l = 1 - torch.square(torch.tanh(l)) 
+        deriv_u = 1 - torch.square(torch.tanh(u))
+
+        L_tanh = torch.min(deriv_l, deriv_u) 
+        U_tanh = torch.max(deriv_l, deriv_u) 
+
+        indices = (l<0) and (u>0)
+        U_tanh[indices] = 1
+
+        L_new_1 = L * L_tanh.view(-1,1)
+        L_new_2 = L * U_tanh.view(-1,1)
+        L_new = torch.min(L_new_1, L_new_2)
+
+        U_new_1 = U * L_tanh.view(-1,1)
+        U_new_2 = U * U_tanh.view(-1,1)
         U_new = torch.max(U_new_1, U_new_2)
 
         return L_new, U_new
