@@ -94,13 +94,17 @@ class Interval(Domain):
         return L_new, U_new
     
     def tanh_deriv(self, l, u, L, U):
+        # Derivative of tanh = 1 - tanh^2
         deriv_l = 1 - torch.square(torch.tanh(l)) 
         deriv_u = 1 - torch.square(torch.tanh(u))
 
         L_tanh = torch.min(deriv_l, deriv_u) 
         U_tanh = torch.max(deriv_l, deriv_u) 
 
-        indices = (l<0) and (u>0)
+        # Remember that l and u are the bounds for the input of the tanh layer.
+        # We need indices where 1-tanh^2 will take 1, this happens when tann(l) < 0
+        # and tanh(u) > 0, which translates to l < 0 and u > 0 because of tanh's behavior.
+        indices = np.logical_and(l<0,u>0)
         U_tanh[indices] = 1
 
         L_new_1 = L * L_tanh.view(-1,1)
