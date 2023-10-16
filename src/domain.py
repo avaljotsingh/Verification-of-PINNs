@@ -8,11 +8,17 @@ class Domain():
     def relu(self, l, u):
         pass 
 
+    def tanh(self, l, u):
+        pass
+
     def fc_deriv(self, L, U, W, b):
         pass 
 
     def relu_deriv(self, l, u, L, U):
         pass 
+
+    def tanh_deriv(self, l, u, L, U):
+        pass
 
 class Interval(Domain):
     def fc(self, l, u, W, b):

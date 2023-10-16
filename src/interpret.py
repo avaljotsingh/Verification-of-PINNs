@@ -1,10 +1,10 @@
 from model import MyModel  
-from domain import Interval 
+from domain import Domain, Interval
 import sys 
 import torch
 
 class Abs_interpreter():
-    def __init__(self, model, domain):
+    def __init__(self, model: MyModel, domain: Domain):
         self.model = model 
         self.domain = domain 
     
@@ -24,6 +24,9 @@ class Abs_interpreter():
             elif type(layer) == torch.nn.modules.activation.ReLU:
                 L, U = self.domain.relu_deriv(l, u, L, U) 
                 l, u = self.domain.relu(l, u)
+            elif type(layer) == torch.nn.modules.activation.Tanh:
+                L, U = self.domain.tanh_deriv(l, u, L, U)
+                l, u = self.domain.tanh(l, u)
             else:
                 raise NotImplementedError("Forward logic not implemented for layer type: ", type(layer))
 
