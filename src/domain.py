@@ -72,17 +72,16 @@ class Interval(Domain):
         return L_new, U_new
     
     def relu_deriv(self, l, u, L, U):
-        L_relu = (l <= 0) * 1
-        U_relu = (u <= 0) * 1
+        # L_relu and U_relu are derivatives of just the ReLU layer.
+        # The lower bounds are zero by default but 1 for the cases where the lower bound of input
+        # is more than equal to 0.
+        L_relu = (l >= 0) * 1
 
-        # L_relu = torch.zeros((l.shape))
-        # U_relu = torch.ones((l.shape))
+        # The upper bounds are 1 by default but 0 for the cases where the upper bound of input
+        # is less than equal to 0.
+        U_relu = 1 - ((u <= 0) * 1)
 
-        # indices = (l>0)
-        # L_relu[indices] = 1
-
-        # indices = (u<0)
-        # U_relu[indices] = 0
+        ## TODO: Check if we need to the handle the l (or u) equal to 0 case differently as ReLU is not differentiable there.
 
         L_new_1 = L * L_relu.view(-1,1)
         L_new_2 = L * U_relu.view(-1,1)
