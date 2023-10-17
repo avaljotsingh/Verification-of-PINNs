@@ -9,8 +9,8 @@ class Abs_interpreter():
         self.domain = domain 
     
     def forward_pass(self, low, high):
-        l = torch.ones((self.model.input_size, 1))*low   
-        u = torch.ones((self.model.input_size, 1))*high
+        l = low   
+        u = high
         L = torch.eye(self.model.input_size)
         U = torch.eye(self.model.input_size)
         

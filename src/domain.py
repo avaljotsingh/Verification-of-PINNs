@@ -107,7 +107,10 @@ class Interval(Domain):
         # Remember that l and u are the bounds for the input of the tanh layer.
         # We need indices where 1-tanh^2 will take 1, this happens when tann(l) < 0
         # and tanh(u) > 0, which translates to l < 0 and u > 0 because of tanh's behavior.
-        indices = np.logical_and(l<0,u>0)
+        l_temp = (l<0).bool()
+        u_temp = (u>0).bool()
+        # temp = l_temp and 
+        indices = (np.logical_and(l_temp,u_temp)).bool()
         U_tanh[indices] = 1
 
         L_new_1 = L * L_tanh.view(-1,1)
