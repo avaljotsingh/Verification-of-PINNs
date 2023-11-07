@@ -15,8 +15,8 @@ class Abs_interpreter():
         L = torch.eye(self.model.input_size)
         U = torch.eye(self.model.input_size)
 
-        L2 = torch.zeros(self.model.input_size)
-        U2 = torch.zeros(self.model.input_size)
+        L2 = torch.zeros((self.model.input_size, self.model.input_size))
+        U2 = torch.zeros((self.model.input_size, self.model.input_size))
         
         # for layer in self.model.layers:
         #     if type(layer) == torch.nn.modules.linear.Linear:
@@ -48,7 +48,7 @@ class Abs_interpreter():
                 l, u, L, U, L2, U2 = self.domain.tanh(l, u, L, U, L2, U2)
             else:
                 raise NotImplementedError("Forward logic not implemented for layer type: ", type(layer))
-
+            
         return (l, u), (L, U)
 
 if __name__ == '__main__':

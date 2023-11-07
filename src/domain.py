@@ -130,7 +130,7 @@ class Interval(Domain):
     #     return min(L*L_, U*U_, L*U_, U*L_), max(L*L_, U*U_, L*U_, U*L_)
     
     def mult(self, L_1, U_1, L_2, U_2):
-        return min(L_1*L_2, L_1*U_2, U_1*L_2, U_1*U_2), max(L_1*L_2, L_1*U_2, U_1*L_2, U_1*U_2)
+        return torch.min(torch.min(L_1*L_2, L_1*U_2), torch.min(U_1*L_2, U_1*U_2)), torch.max(torch.max(L_1*L_2, L_1*U_2), torch.max(U_1*L_2, U_1*U_2))
     
     def add(self, L_1, U_1, L_2, U_2):
         return L_1 + L_2, U_1 + U_2
@@ -144,12 +144,14 @@ class Interval(Domain):
         l_new = W1 @ l + W2 @ u + b
         u_new = W2 @ l + W1 @ u + b
 
-        L_new, U_new = self.mult(L, U, W, W)
+        # L_new, U_new = self.mult(L, U, W, W)
 
-        # L_new = W1 @ L + W2 @ U
-        # U_new = W2 @ L + W1 @ U
+        L_new = W1 @ L + W2 @ U
+        U_new = W2 @ L + W1 @ U
 
-        L2_new, U2_new = self.mult(W, W, L2, U2)
+        L2_new = W1 @ L2 + W2 @ U2
+        U2_new = W2 @ L2 + W1 @ U2
+
         return l_new, u_new, L_new, U_new, L2_new, U2_new 
     
     def relu(self, l, u, L, U, L2, U2):
@@ -181,9 +183,9 @@ class Interval(Domain):
         L2_temp = torch.where((u > 0.65) & (l < 0.66), -0.77 * torch.ones(l.size()), torch.min(temp1, temp2))
         U2_temp = torch.where((u > -0.66) & (l < -0.65), 0.77 * torch.ones(u.size()), torch.max(temp1, temp2)) 
 
-        L_sqr = max(min(L*L, U*U),torch.zeros(L.size()))
-        U_sqr = max(max(L*L, U*U),torch.zeros(L.size()))
+        L_sqr = torch.max(torch.min(L*L, U*U),torch.zeros(L.size()))
+        U_sqr = torch.max(torch.max(L*L, U*U),torch.zeros(L.size()))
 
-        L2_new, U2_new = self.add(self.mult(L_temp, U_temp, L2, U2), self.mult(L2_temp,U2_temp, L_sqr, U_sqr))
+        L2_new, U2_new = self.add(*self.mult(L_temp, U_temp, L2, U2), *self.mult(L2_temp, U2_temp, L_sqr, U_sqr))
 
         return l_new, u_new, L_new, U_new, L2_new, U2_new 
