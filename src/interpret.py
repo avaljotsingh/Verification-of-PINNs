@@ -49,7 +49,7 @@ class Abs_interpreter():
             else:
                 raise NotImplementedError("Forward logic not implemented for layer type: ", type(layer))
             
-        return (l, u), (L, U)
+        return (l, u), (L, U), (L2, U2)
 
 if __name__ == '__main__':
     file_name = sys.argv[1]
