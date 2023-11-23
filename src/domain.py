@@ -177,8 +177,8 @@ class Interval(Domain):
 
         L_new, U_new = self.mult(L_temp, U_temp, L, U)
 
-        temp1 = 2*l*l*l - 2*l 
-        temp2 = 2*u*u*u - 2*u 
+        temp1 = 2*l_new*l_new*l_new - 2*l_new 
+        temp2 = 2*u_new*u_new*u_new - 2*u_new 
         
         L2_temp = torch.where((u > 0.65) & (l < 0.66), -0.77 * torch.ones(l.size()), torch.min(temp1, temp2))
         U2_temp = torch.where((u > -0.66) & (l < -0.65), 0.77 * torch.ones(u.size()), torch.max(temp1, temp2)) 
