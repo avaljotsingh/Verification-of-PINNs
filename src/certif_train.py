@@ -114,10 +114,12 @@ if __name__=='__main__':
     print(model)
 
     # 3. set the optimizer
-    lr = 0.006
+    # lr = 0.006
+    lr = 0.01
+
     opt = torch.optim.Adam(model.parameters(), lr)
-    n_epochs = 1000
-    num_partitions = 30
+    n_epochs = 500
+    num_partitions = 40
 
     loss_history = []
     start = time.time()
@@ -135,7 +137,7 @@ if __name__=='__main__':
     final_loss = loss_function(model, boundary_condition_points, initial_condition_points, num_partitions, x_min, x_max, t_min, t_max)
     print('final_loss = ', final_loss)
 
-    torch.save(model, "../trained_models/pinn-burgers_cert_train_2.pt")
+    torch.save(model, "../trained_models/pinn-burgers_cert_train.pt")
     print(time.time()-start)
     plt.plot(loss_history)
     plt.title("Loss progression")

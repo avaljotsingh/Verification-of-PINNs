@@ -111,10 +111,9 @@ if __name__=='__main__':
     model = MyModel(2, [15, 15, 15], ['tanh', 'tanh', 'tanh'], 1)
 
     # 3. set the optimizer
-    lr = 0.006
+    lr = 0.01
     opt = torch.optim.Adam(model.parameters(), lr)
     n_epochs = 1000
-    num_partitions = 20
 
     loss_history = []
     start = time.time()
