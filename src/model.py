@@ -35,15 +35,15 @@ class MyModel(torch.nn.Module):
         # Combine all layers into a sequential module
         self.layers = torch.nn.Sequential(*layers)
 
-    def forward_interval(self, low, high):
+    def forward_interval(self, low, high, device):
         l = low   
         u = high
 
-        L = torch.eye(self.input_size)
-        U = torch.eye(self.input_size)
+        L = torch.eye(self.input_size, device=device)
+        U = torch.eye(self.input_size, device=device)
 
-        L2 = torch.zeros((self.input_size, self.input_size))
-        U2 = torch.zeros((self.input_size, self.input_size))
+        L2 = torch.zeros((self.input_size, self.input_size), device=device)
+        U2 = torch.zeros((self.input_size, self.input_size), device=device)
 
         for layer in self.layers:
             if type(layer) == torch.nn.modules.linear.Linear:

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
+
     
 def u0(x):
     """initial condition"""
@@ -28,10 +29,10 @@ class IntervalDomainHandler():
         return (torch.min(op1, torch.min(op2, torch.min(op3, op4))), torch.max(op1, torch.max(op2, torch.max(op3, op4))))
 
 
-def residual_loss_per_partition(model, interval_handler, inpx_range, inpt_range):
-    lows = torch.tensor([inpx_range[0], inpt_range[0]]).reshape(-1,1)
-    highs = torch.tensor([inpx_range[1], inpt_range[1]]).reshape(-1,1)
-    val_bounds, deriv_bounds, deriv2_bounds = model.forward_interval(lows, highs)
+def residual_loss_per_partition(model, interval_handler, inpx_range, inpt_range, device):
+    lows = torch.tensor([inpx_range[0], inpt_range[0]], device=device).reshape(-1,1)
+    highs = torch.tensor([inpx_range[1], inpt_range[1]], device=device).reshape(-1,1)
+    val_bounds, deriv_bounds, deriv2_bounds = model.forward_interval(lows, highs, device)
 
     ul = val_bounds[0][0][0]
     ur = val_bounds[1][0][0]
@@ -52,7 +53,7 @@ def residual_loss_per_partition(model, interval_handler, inpx_range, inpt_range)
     return max(abs(residual_bounds[0]), abs(residual_bounds[1]))
                                               
 
-def compute_residual_loss(model, num_partitions, interval_handler, inpx_range, inpt_range):
+def compute_residual_loss(model, num_partitions, interval_handler, inpx_range, inpt_range, device):
     xeps = (inpx_range[1] - inpx_range[0])/num_partitions
     teps = (inpt_range[1] - inpt_range[0])/num_partitions
 
@@ -63,12 +64,12 @@ def compute_residual_loss(model, num_partitions, interval_handler, inpx_range, i
             inpx_range = (inpx_range[0] + xeps*i, inpx_range[0] + xeps*(i+1))
             inpt_range = (inpt_range[0] + teps*j, inpt_range[0] + teps*(j+1))
     
-            residual_loss += residual_loss_per_partition(model, interval_handler, inpx_range, inpt_range)
+            residual_loss += residual_loss_per_partition(model, interval_handler, inpx_range, inpt_range, device)
 
     return residual_loss / num_partitions
 
 
-def loss_function(model, bcps, icps, num_partitions, x_min, x_max, t_min, t_max): 
+def loss_function(model, bcps, icps, num_partitions, x_min, x_max, t_min, t_max, device): 
     
     # Boundary conditions loss
     bcp_xs = bcps[:,0].reshape(-1, 1)
@@ -85,7 +86,7 @@ def loss_function(model, bcps, icps, num_partitions, x_min, x_max, t_min, t_max)
     
     # Residual loss using derivatives (the interesting part)
     interval_handler = IntervalDomainHandler()
-    residual_loss = compute_residual_loss(model, num_partitions, interval_handler, inpx_range=(x_min + 0.001, x_max - 0.001), inpt_range=(t_min + 0.001, t_max - 0.001))
+    residual_loss = compute_residual_loss(model, num_partitions, interval_handler, inpx_range=(x_min + 0.001, x_max - 0.001), inpt_range=(t_min + 0.001, t_max - 0.001), device=device)
 
     loss_value = boundary_loss + initial_loss + residual_loss
     
@@ -100,17 +101,28 @@ if __name__=='__main__':
     t_max = 1.0
     mu = .01 / np.pi
 
-    boundary_condition_points = [torch.tensor([x_min, t]) for t in torch.linspace(t_min, t_max, 500)]
-    boundary_condition_points.extend([torch.tensor([x_max, t]) for t in torch.linspace(t_min, t_max, 500)])
+    device = 'cpu'
+
+    # if torch.cuda.is_available():
+    #     device = 'cuda'
+    #     torch.set_default_device('cuda')
+    # else:
+    #     device = 'cpu'
+
+    boundary_condition_points = [torch.tensor([x_min, t], device=device) for t in torch.linspace(t_min, t_max, 500)]
+    boundary_condition_points.extend([torch.tensor([x_max, t], device=device) for t in torch.linspace(t_min, t_max, 500)])
     boundary_condition_points = torch.stack(boundary_condition_points, dim = 0)
 
-    initial_condition_points = [torch.tensor([x, t_min]) for x in torch.linspace(x_min, x_max, 500)]
+    initial_condition_points = [torch.tensor([x, t_min], device=device) for x in torch.linspace(x_min, x_max, 500)]
     initial_condition_points = torch.stack(initial_condition_points, dim = 0)
 
     
     # 2. set the model
-    torch.manual_seed(23939)
-    model = MyModel(2, [15, 15, 15], ['tanh', 'tanh', 'tanh'], 1)
+    model_name = "../trained_models/pinn-burgers_cert_train.pt"
+    model = torch.load(model_name)
+    # torch.manual_seed(23939)
+    # model = MyModel(2, [15, 15, 15], ['tanh', 'tanh', 'tanh'], 1)
+    model.to(device)
     print(model)
 
     # 3. set the optimizer
@@ -125,7 +137,7 @@ if __name__=='__main__':
     start = time.time()
     for i in range(n_epochs):
         opt.zero_grad()
-        loss = loss_function(model, boundary_condition_points, initial_condition_points, num_partitions, x_min, x_max, t_min, t_max)
+        loss = loss_function(model, boundary_condition_points, initial_condition_points, num_partitions, x_min, x_max, t_min, t_max, device)
         loss_history.append(loss.item())
         
         loss.backward()
@@ -134,10 +146,10 @@ if __name__=='__main__':
         if i % 1 == 0:
             print(f'epoch {i}, loss = {loss}')
 
-    final_loss = loss_function(model, boundary_condition_points, initial_condition_points, num_partitions, x_min, x_max, t_min, t_max)
+    final_loss = loss_function(model, boundary_condition_points, initial_condition_points, num_partitions, x_min, x_max, t_min, t_max, device)
     print('final_loss = ', final_loss)
 
-    torch.save(model, "../trained_models/pinn-burgers_cert_train.pt")
+    torch.save(model, "../trained_models/pinn-burgers_cert_train_from_saved_1000.pt")
     print(time.time()-start)
     plt.plot(loss_history)
     plt.title("Loss progression")
