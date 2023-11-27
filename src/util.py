@@ -129,3 +129,19 @@ def compute_pinn_bounds_using_input_splitting(model_name,
     
     print("Bounds for {} after {} partitions: ({}, {})".format(model_name_base, num_partitions, l_final, u_final))
     return l_final, u_final
+
+
+def plot_actual_model(model_name):
+    model = torch.load(model_name)
+    plt.figure(figsize = (10, 5))
+    n = 1000
+    xs, ts = torch.meshgrid(torch.linspace(-1.0, 1, n), torch.linspace(0.0, 1.0, n))
+    xs = xs.reshape(-1, 1).requires_grad_(False)
+    ts = ts.reshape(-1, 1).requires_grad_(False)
+    f = model(torch.cat([xs, ts], dim=1)).reshape((n ,n))
+    heatmap = plt.imshow(f.detach().numpy(), extent=[0,1,-1,1], cmap='seismic', interpolation='nearest', aspect='auto')
+    plt.colorbar(heatmap)
+    plt.xlabel(r'$t$')
+    plt.ylabel(r'$x$')
+    plt.title(r'$u(x,t)$')
+    plt.show()
