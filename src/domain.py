@@ -2,37 +2,16 @@ import numpy as np
 import torch
 
 class Domain():
-    def fc(self, l, u, W, b):
+    def fc(self, l, u, L, U, L2, U2, W, b):
         pass 
 
-    def relu(self, l, u):
+    def relu(self, l, u, L, U, L2, U2):
         pass 
 
-    def tanh(self, l, u):
-        pass
-
-    def fc_deriv(self, L, U, W, b):
-        pass 
-
-    def relu_deriv(self, l, u, L, U):
-        pass 
-
-    def tanh_deriv(self, l, u, L, U):
+    def tanh(self, l, u, L, U, L2, U2):
         pass
 
 class Interval(Domain):
-    def fc(self, l, u, W, b):
-        S = (W >= 0) * 1
-        W1 = S * W    
-        W2 = (1 - S) * W
-
-        b = b.reshape(-1, 1)
-
-        l_new = W1 @ l + W2 @ u + b
-        u_new = W2 @ l + W1 @ u + b
-
-        return l_new, u_new
-
     def mult(self, L_1, U_1, L_2, U_2):
         return torch.min(torch.min(L_1*L_2, L_1*U_2), torch.min(U_1*L_2, U_1*U_2)), torch.max(torch.max(L_1*L_2, L_1*U_2), torch.max(U_1*L_2, U_1*U_2))
     
