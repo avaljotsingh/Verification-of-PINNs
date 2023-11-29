@@ -79,7 +79,7 @@ def loss_function(model, bcps, icps, residual_points, num_pgd_iterations, mu, ep
     residual_points.requires_grad = True
     res_loss = residual_loss(model, residual_points, mu)
     loss_value = boundary_loss + initial_loss + res_loss
-    
+    print(boundary_loss, initial_loss, res_loss)
     return loss_value
 
 
@@ -113,7 +113,7 @@ if __name__=='__main__':
     # 3. set the optimizer
     lr = 0.01
     opt = torch.optim.Adam(model.parameters(), lr)
-    n_epochs = 1000
+    n_epochs = 100
 
     loss_history = []
     start = time.time()
@@ -131,7 +131,7 @@ if __name__=='__main__':
     final_loss = loss_function(model, boundary_condition_points, initial_condition_points, residual_points, num_pgd_iterations, mu, eps, alpha)
     print('final_loss = ', final_loss)
 
-    torch.save(model, "../trained_models/pinn-burgers_pgd_train_1.pt")
+    torch.save(model, "../trained_models/pinn-burgers_pgd_100.pt")
     print(time.time()-start)
     plt.plot(loss_history)
     plt.title("Loss progression")
